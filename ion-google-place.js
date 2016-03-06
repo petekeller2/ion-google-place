@@ -8,7 +8,8 @@ angular.module('ion-google-place', [])
         '$rootScope',
         '$document',
         '$http',
-        function($ionicTemplateLoader, $ionicBackdrop, $ionicPlatform, $q, $timeout, $rootScope, $document, $http) {
+        'GooglePlaceAPI',
+        function($ionicTemplateLoader, $ionicBackdrop, $ionicPlatform, $q, $timeout, $rootScope, $document, $http, GooglePlaceAPI) {
             return {
                 require: '?ngModel',
                 restrict: 'E',
@@ -18,8 +19,7 @@ angular.module('ion-google-place', [])
                     ngModel: '=?',
                     geocodeOptions: '=',
                     currentLocation: '@',
-                    searchType: '@',
-                    googleKey: '@'
+                    searchType: '@'
                 },
                 link: function(scope, element, attrs, ngModel) {
                     var unbindBackButtonAction;
@@ -162,32 +162,10 @@ angular.module('ion-google-place', [])
                                     }
                                 });
                                 */
-                                if(scope.googleKey) {
-                                    var locationsRequest;
-                                    if (scope.searchType) {
-                                        //console.log("scope.searchType", scope.searchType);
-                                        locationsRequest = $http({
-                                            method: "post",
-                                            url: "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=" + query + "&types=" + scope.searchType + "&key=" + scope.googleKey
-                                        });
-                                    }
-                                    else {
-                                        locationsRequest = $http({
-                                            method: "post",
-                                            url: "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=" + query + "&key=" + scope.googleKey
-                                        });
-                                    }
-
-                                    locationsRequest.success(function (data) {
-                                        //console.log("data", data);
-                                        //scope.$apply(function(){
-                                        scope.locations = data.predictions;
-                                        //});
-                                    });
-                                }
-                                else {
-                                    console.log("Google api key required!");
-                                }
+                                var placeAPI = GooglePlaceAPI;
+                                placeAPI.search(query, scope.searchType).success(function (data) {
+                                    scope.locations = data.predictions;
+                                });
 
                             }, 350); // we're throttling the input by 350ms to be nice to google's API
                         });
